@@ -5,13 +5,28 @@
 #include <string_view>
 
 bool is_invalid_id(const long long id) {
-    const auto id_str = std::to_string(id);
+    const auto id_text = std::to_string(id);
+    const auto id_size = id_text.size();
+    const size_t mid = id_size / 2;
 
-    if (id_str.size() / 2 == 0) return false;
+    for (size_t chunk_size = 1; chunk_size <= mid; chunk_size++) {
+        if (id_size % chunk_size != 0)
+            continue;
 
-    const auto mid = id_str.size() / 2;
+        bool is_repeated = true;
 
-    return id_str.substr(0, mid) == id_str.substr(mid);
+        for (size_t i = chunk_size; i < id_size; i++) {
+            if (id_text[i] != id_text[i % chunk_size]) {
+                is_repeated = false;
+                break;
+            }
+        }
+
+        if (is_repeated)
+            return true;
+    }
+
+    return false;
 }
 
 int main() {
@@ -32,9 +47,8 @@ int main() {
         const auto min_id = std::stoll(std::string(id_range.substr(0, position)));
         const auto max_id = std::stoll(std::string(id_range.substr(position + 1)));
 
-        auto invalid_ids
-            = std::views::iota(min_id, max_id + 1)
-            | std::views::filter(is_invalid_id);
+        auto invalid_ids = std::views::iota(min_id, max_id + 1)
+                           | std::views::filter(is_invalid_id);
 
         for (const auto invalid_id: invalid_ids)
             sum += invalid_id;
